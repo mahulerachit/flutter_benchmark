@@ -7,6 +7,9 @@ import 'package:flutter/scheduler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'src/models/frame_time_compute_model.dart';
+import 'src/models/frame_time_model.dart';
+
 const _defaultFps = 60.0;
 const _milliSecondsInASecond = 1000000;
 const _milliSecondsInAMicroSecond = 1000;
@@ -73,6 +76,7 @@ class FlutterBenchmark {
       _frameTimeList.add(FrameTimeModel(
         epochTime: DateTime.now().millisecondsSinceEpoch,
         timeInMicroseconds: time.inMicroseconds,
+        fps: _defaultFps,
       ));
     }
 
@@ -145,34 +149,6 @@ class FlutterBenchmark {
   double get getJankThresholdFrameRate => _jankThresholdFrameRate;
 
   BenchmarkReportFormat get getBenchmarkReportFormat => _benchmarkReportFormat;
-}
-
-class FrameTimeComputeModel {
-  final List<FrameTimeModel> frameTimeList;
-  final double jankThresholdFrameRate;
-  final Duration benchmarkTime;
-  // Future enhancement
-  final int? initialBattery;
-  final int? finalBattery;
-
-  FrameTimeComputeModel({
-    required this.frameTimeList,
-    required this.jankThresholdFrameRate,
-    required this.benchmarkTime,
-    this.initialBattery,
-    this.finalBattery,
-  });
-}
-
-class FrameTimeModel {
-  final int timeInMicroseconds;
-  final int epochTime;
-  double fps;
-  FrameTimeModel({
-    required this.timeInMicroseconds,
-    required this.epochTime,
-    this.fps = _defaultFps,
-  });
 }
 
 String _getJsonIsolate(FrameTimeComputeModel frameTimeComputeModel) {

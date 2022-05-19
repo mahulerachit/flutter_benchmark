@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../flutter_benchmark.dart';
+import '../../flutter_benchmark.dart';
 
 class PerformanceFabWidget extends StatefulWidget {
   const PerformanceFabWidget({Key? key}) : super(key: key);
