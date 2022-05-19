@@ -4,17 +4,21 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_benchmark/src/models/frame_time_compute_model.dart';
+import 'package:flutter_benchmark/src/models/frame_time_model.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-
-import 'src/models/frame_time_compute_model.dart';
-import 'src/models/frame_time_model.dart';
+import 'flutter_benchmark_platform_interface.dart';
 
 const _defaultFps = 60.0;
 const _milliSecondsInASecond = 1000000;
 const _milliSecondsInAMicroSecond = 1000;
 
 class FlutterBenchmark {
+  Future<String?> getPlatformVersion() {
+    return FlutterBenchmarkPlatform.instance.getPlatformVersion();
+  }
+
   /// List of frame time object required to generate performance metrics
   /// when the monitoring stops.
   List<FrameTimeModel> _frameTimeList = [];

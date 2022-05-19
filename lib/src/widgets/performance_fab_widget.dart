@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
-
-import '../../flutter_benchmark.dart';
+import 'package:flutter_benchmark/flutter_benchmark.dart';
 
 class PerformanceFabWidget extends StatefulWidget {
-  const PerformanceFabWidget({Key? key}) : super(key: key);
+  final Widget child;
+  final Offset? initialOffset;
+  const PerformanceFabWidget({
+    Key? key,
+    required this.child,
+    this.initialOffset,
+  }) : super(key: key);
 
   @override
   PerformanceFabWidgetState createState() => PerformanceFabWidgetState();
@@ -12,6 +17,13 @@ class PerformanceFabWidget extends StatefulWidget {
 class PerformanceFabWidgetState extends State<PerformanceFabWidget> {
   Offset position = const Offset(20.0, 30.0);
   bool _recording = false;
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialOffset != null) {
+      position = widget.initialOffset!;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,16 +33,23 @@ class PerformanceFabWidgetState extends State<PerformanceFabWidget> {
   Widget getWidget() {
     return Stack(
       children: [
-        Positioned(
-          left: position.dx,
-          top: position.dy,
-          child: Draggable(
-            feedback: _getButton(outline: true),
-            onDragEnd: (details) {
-              setState(() => position = details.offset);
-            },
-            child: _getButton(),
-          ),
+        widget.child,
+        Overlay(
+          initialEntries: [
+            OverlayEntry(
+              builder: (context) => Positioned(
+                left: position.dx,
+                top: position.dy,
+                child: Draggable(
+                  feedback: _getButton(outline: true),
+                  onDragEnd: (details) {
+                    setState(() => position = details.offset);
+                  },
+                  child: _getButton(),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -49,8 +68,8 @@ class PerformanceFabWidgetState extends State<PerformanceFabWidget> {
           setState(() => _recording = !_recording);
         },
         child: Ink(
-          width: 48,
-          height: 48,
+          width: 56,
+          height: 56,
           decoration: outline
               ? const BoxDecoration(
                   shape: BoxShape.circle,
