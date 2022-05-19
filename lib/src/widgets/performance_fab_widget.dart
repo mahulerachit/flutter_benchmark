@@ -4,10 +4,12 @@ import 'package:flutter_benchmark/flutter_benchmark.dart';
 class PerformanceFabWidget extends StatefulWidget {
   final Widget child;
   final Offset? initialOffset;
+  final bool show;
   const PerformanceFabWidget({
     Key? key,
     required this.child,
     this.initialOffset,
+    this.show = true,
   }) : super(key: key);
 
   @override
@@ -27,7 +29,7 @@ class PerformanceFabWidgetState extends State<PerformanceFabWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return getWidget();
+    return widget.show ? getWidget() : widget.child;
   }
 
   Widget getWidget() {
