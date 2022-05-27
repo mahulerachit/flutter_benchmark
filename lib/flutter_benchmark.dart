@@ -3,12 +3,15 @@ import 'dart:core';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_benchmark/src/models/frame_time_compute_model.dart';
 import 'package:flutter_benchmark/src/models/frame_time_model.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'flutter_benchmark_platform_interface.dart';
+import 'src/utils/enums.dart';
+import 'src/widgets/performance_fab.dart';
 
 const _defaultFps = 60.0;
 const _milliSecondsInASecond = 1000000;
@@ -93,7 +96,7 @@ class FlutterBenchmark {
   }
 
   /// Call [stopBenchmark] to initiate performance recording of your app.
-  void stopBenchmark({bool generateReport = true}) async {
+  Future<void> stopBenchmark({bool generateReport = true}) async {
     if (_isMonitoring) {
       _isMonitoring = false;
       _benchmarkTime += DateTime.now().difference(_startTime ?? DateTime.now());
@@ -133,6 +136,9 @@ class FlutterBenchmark {
         break;
       case BenchmarkReportFormat.plainString:
         Share.share(result);
+        break;
+      case BenchmarkReportFormat.html:
+        // TODO: Handle this case.
         break;
     }
   }
@@ -218,12 +224,37 @@ String _getJsonIsolate(FrameTimeComputeModel frameTimeComputeModel) {
   return json.encode(map);
 }
 
-enum BenchmarkReportFormat {
-  jsonFile,
-  plainString,
-}
-
 /// Logs events when the app is running in debug mode only.
 _printDebugOnly(text, {String header = ''}) {
   if (kDebugMode) print('$header: $text');
 }
+
+class PerformanceFabWidget extends StatelessWidget {
+  final Widget child;
+  final Offset? initialOffset;
+  final bool? show;
+  final Color overlayColor;
+  final Color accentColor;
+  const PerformanceFabWidget({
+    Key? key,
+    required this.child,
+    this.initialOffset,
+    this.show = true,
+    this.overlayColor = _kOverlayColor,
+    this.accentColor = _kAccentColor,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return PerformanceFab(
+      initialOffset: initialOffset,
+      show: show,
+      accentColor: accentColor,
+      overlayColor: overlayColor,
+      child: child,
+    );
+  }
+}
+
+const _kAccentColor = Colors.blueGrey;
+const _kOverlayColor = Colors.blueGrey;

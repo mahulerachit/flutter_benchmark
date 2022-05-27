@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_benchmark/flutter_benchmark.dart';
-import 'package:flutter_benchmark/src/widgets/performance_fab_widget.dart';
 
 void main() {
   runApp(const MyApp());
@@ -88,7 +87,10 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return PerformanceFabWidget(
-      initialOffset: const Offset(30, 90),
+      initialOffset: const Offset(30, 120),
+      accentColor: Colors.white,
+      overlayColor: Colors.blueGrey,
+      show: true,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Benchmark Demo Home Page'),
@@ -97,15 +99,28 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Text(_platformVersion),
-              ElevatedButton(
-                  onPressed: _cpuJank, child: const Text('Trigger CPU Jank')),
-              ElevatedButton(
-                  onPressed: _gpuJank, child: const Text('Trigger GPU Jank')),
-              ElevatedButton(onPressed: _combined, child: const Text('Both')),
-              const CircularProgressIndicator(),
               Expanded(
                 child: _renderList ? _getList() : const SizedBox(),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                color: Colors.white,
+                child: Column(
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 8),
+                    Text(_platformVersion),
+                    ElevatedButton(
+                        onPressed: _cpuJank,
+                        child: const Text('Trigger CPU Jank')),
+                    ElevatedButton(
+                        onPressed: _gpuJank,
+                        child: const Text('Trigger GPU Jank')),
+                    ElevatedButton(
+                        onPressed: _combined, child: const Text('Both')),
+                  ],
+                ),
               ),
             ],
           ),
@@ -116,7 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _cpuJank() {
     double temp = 0;
-    for (int i = 0; i <= 500000000; i++) {
+    for (int i = 0; i <= 1000000000; i++) {
       temp = i / 1000000000;
     }
     if (kDebugMode) {
@@ -128,7 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _renderList = true;
     });
-    Future.delayed(const Duration(milliseconds: 5000)).then(
+    Future.delayed(const Duration(milliseconds: 10000)).then(
       (value) => setState(
         () => _renderList = false,
       ),
@@ -144,7 +159,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Wrap(
       direction: Axis.horizontal,
       children: List.generate(
-        2000,
+        3000,
         (index) => const FlutterLogo(),
       ),
     );
