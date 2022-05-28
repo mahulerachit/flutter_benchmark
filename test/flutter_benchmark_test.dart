@@ -9,6 +9,11 @@ class MockFlutterBenchmarkPlatform
     implements FlutterBenchmarkPlatform {
   @override
   Future<String?> getPlatformVersion() => Future.value('42');
+
+  @override
+  Future<void> shareJsonReport(String result) {
+    throw UnimplementedError();
+  }
 }
 
 void main() {

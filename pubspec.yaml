@@ -31,4 +31,4 @@ flutter:
         pluginClass: FlutterBenchmarkPlugin
       web:
         pluginClass: FlutterBenchmarkWeb
-        fileName: flutter_benchmark_web.dart
+        fileName: src/platform/flutter_benchmark_web.dart

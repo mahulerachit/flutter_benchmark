@@ -111,14 +111,27 @@ class _MyHomePageState extends State<MyHomePage> {
                     const CircularProgressIndicator(),
                     const SizedBox(height: 8),
                     Text(_platformVersion),
-                    ElevatedButton(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: ElevatedButton(
                         onPressed: _cpuJank,
-                        child: const Text('Trigger CPU Jank')),
-                    ElevatedButton(
+                        child: const Text('Trigger CPU Jank'),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: ElevatedButton(
                         onPressed: _gpuJank,
-                        child: const Text('Trigger GPU Jank')),
-                    ElevatedButton(
-                        onPressed: _combined, child: const Text('Both')),
+                        child: const Text('Trigger GPU Jank'),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: ElevatedButton(
+                        onPressed: _combined,
+                        child: const Text('Both'),
+                      ),
+                    ),
                   ],
                 ),
               ),

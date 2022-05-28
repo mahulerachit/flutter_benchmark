@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'dart:core';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_benchmark/src/models/frame_time_compute_model.dart';
 import 'package:flutter_benchmark/src/models/frame_time_model.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'flutter_benchmark_platform_interface.dart';
 import 'src/utils/enums.dart';
@@ -125,14 +123,7 @@ class FlutterBenchmark {
   Future<void> _shareReport(final String result) async {
     switch (_benchmarkReportFormat) {
       case BenchmarkReportFormat.jsonFile:
-        {
-          await getTemporaryDirectory().then((dir) async {
-            final jsonFile = File(
-                '${dir.path}/${DateTime.now().millisecondsSinceEpoch}.json');
-            await jsonFile.writeAsString(result);
-            Share.shareFiles([jsonFile.path]);
-          });
-        }
+        FlutterBenchmarkPlatform.instance.shareJsonReport(result);
         break;
       case BenchmarkReportFormat.plainString:
         Share.share(result);
@@ -194,11 +185,19 @@ String _getJsonIsolate(FrameTimeComputeModel frameTimeComputeModel) {
   double total = 0; //Initial values
   double maxFps = 0; //Initial values
   double minFps = 1000; //Initial values
+  int maxFrameTime = 10000; //Initial values
+  int minFrameTime = 0; //Initial values
   for (var element in frameTimeComputeModel.frameTimeList) {
     total += element.fps;
 
-    if (maxFps < element.fps) maxFps = element.fps;
-    if (minFps > element.fps) minFps = element.fps;
+    if (maxFps < element.fps) {
+      maxFps = element.fps;
+      minFrameTime = element.timeInMicroseconds;
+    }
+    if (minFps > element.fps) {
+      minFps = element.fps;
+      maxFrameTime = element.timeInMicroseconds;
+    }
   }
 
   // Average framerate calculation
@@ -206,19 +205,29 @@ String _getJsonIsolate(FrameTimeComputeModel frameTimeComputeModel) {
 
   double jankThreshold = frameTimeComputeModel.jankThresholdFrameRate;
   double jankFrames = 0;
-
+  double totalJankTimeInSecs = 0;
   // Jank calculation
   for (var element in frameTimeComputeModel.frameTimeList) {
-    if (jankThreshold > element.fps) jankFrames++;
+    if (jankThreshold > element.fps) {
+      jankFrames++;
+      totalJankTimeInSecs += element.timeInMicroseconds;
+    }
   }
+
   map.putIfAbsent('averageFps', () => averageFps);
   map.putIfAbsent('maxFps', () => maxFps);
+  map.putIfAbsent(
+      'minFrameTime', () => minFrameTime / _milliSecondsInAMicroSecond);
   map.putIfAbsent('minFps', () => minFps);
+  map.putIfAbsent(
+      'maxFrameTime', () => maxFrameTime / _milliSecondsInAMicroSecond);
   map.putIfAbsent('jankFrames', () => jankFrames);
   map.putIfAbsent('jankPercentage',
       () => jankFrames / frameTimeComputeModel.frameTimeList.length * 100);
+  map.putIfAbsent('totalJankTimeInMs',
+      () => totalJankTimeInSecs / _milliSecondsInAMicroSecond);
   map.putIfAbsent(
-      'durationInSecs', () => frameTimeComputeModel.benchmarkTime.inSeconds);
+      'durationInMs', () => frameTimeComputeModel.benchmarkTime.inMilliseconds);
 
   map.putIfAbsent('frameTimeMap', () => frameTimeMap);
   return json.encode(map);

@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../flutter_benchmark_platform_interface.dart';
 
 /// An implementation of [FlutterBenchmarkPlatform] that uses method channels.
@@ -14,5 +17,15 @@ class MethodChannelFlutterBenchmark extends FlutterBenchmarkPlatform {
     final version =
         await methodChannel.invokeMethod<String>('getPlatformVersion');
     return version;
+  }
+
+  @override
+  Future<void> shareJsonReport(String result) async {
+    await getTemporaryDirectory().then((dir) async {
+      final jsonFile =
+          File('${dir.path}/${DateTime.now().millisecondsSinceEpoch}.json');
+      await jsonFile.writeAsString(result);
+      Share.shareFiles([jsonFile.path]);
+    });
   }
 }
