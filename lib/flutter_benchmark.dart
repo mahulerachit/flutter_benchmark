@@ -1,19 +1,17 @@
-import 'dart:convert';
 import 'dart:core';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_benchmark/src/isolates/html_isolate_helper.dart';
 import 'package:flutter_benchmark/src/models/frame_time_compute_model.dart';
 import 'package:flutter_benchmark/src/models/frame_time_model.dart';
+import 'package:flutter_benchmark/src/isolates/json_isolate_helper.dart';
 import 'package:share_plus/share_plus.dart';
 import 'flutter_benchmark_platform_interface.dart';
+import 'src/utils/consts.dart';
 import 'src/utils/enums.dart';
 import 'src/widgets/performance_fab.dart';
-
-const _defaultFps = 60.0;
-const _milliSecondsInASecond = 1000000;
-const _milliSecondsInAMicroSecond = 1000;
 
 class FlutterBenchmark {
   Future<String?> getPlatformVersion() {
@@ -81,7 +79,7 @@ class FlutterBenchmark {
       _frameTimeList.add(FrameTimeModel(
         epochTime: DateTime.now().millisecondsSinceEpoch,
         timeInMicroseconds: time.inMicroseconds,
-        fps: _defaultFps,
+        fps: kDefaultFps,
       ));
     }
 
@@ -107,14 +105,34 @@ class FlutterBenchmark {
 
   Future<void> _generateReport(
       {BenchmarkReportFormat? benchmarkReportFormat}) async {
-    if (_frameTimeList.isEmpty) {
+    if (_frameTimeList.length <= 1) {
       return;
     }
 
-    final result = await compute(_getJsonIsolate, _getFrameTimeComputeModel());
-
     if (benchmarkReportFormat != null) {
       _benchmarkReportFormat = benchmarkReportFormat;
+    }
+
+    String result = '';
+    switch (_benchmarkReportFormat) {
+      case BenchmarkReportFormat.jsonFile:
+        result = await compute(
+          JsonIsolateHelper.getJsonIsolate,
+          _getFrameTimeComputeModel(),
+        );
+        break;
+      case BenchmarkReportFormat.plainString:
+        result = await compute(
+          JsonIsolateHelper.getJsonIsolate,
+          _getFrameTimeComputeModel(),
+        );
+        break;
+      case BenchmarkReportFormat.html:
+        result = await compute(
+          HtmlIsolateHelper.getHtmlIsolate,
+          _getFrameTimeComputeModel(),
+        );
+        break;
     }
 
     _shareReport(result);
@@ -123,13 +141,19 @@ class FlutterBenchmark {
   Future<void> _shareReport(final String result) async {
     switch (_benchmarkReportFormat) {
       case BenchmarkReportFormat.jsonFile:
-        FlutterBenchmarkPlatform.instance.shareJsonReport(result);
+        FlutterBenchmarkPlatform.instance.shareReport(
+          result,
+          BenchmarkReportFormat.jsonFile.getValue,
+        );
         break;
       case BenchmarkReportFormat.plainString:
         Share.share(result);
         break;
       case BenchmarkReportFormat.html:
-        // TODO: Handle this case.
+        FlutterBenchmarkPlatform.instance.shareReport(
+          result,
+          BenchmarkReportFormat.html.getValue,
+        );
         break;
     }
   }
@@ -150,87 +174,6 @@ class FlutterBenchmark {
   double get getJankThresholdFrameRate => _jankThresholdFrameRate;
 
   BenchmarkReportFormat get getBenchmarkReportFormat => _benchmarkReportFormat;
-}
-
-String _getJsonIsolate(FrameTimeComputeModel frameTimeComputeModel) {
-  Map<String, dynamic> map = {};
-  Map<String, dynamic> frameTimeMap = {};
-  _printDebugOnly(frameTimeComputeModel.frameTimeList.length,
-      header: 'Frames analyzed by Benchmark');
-
-  // Asynchronous FPS calculation
-  for (int i = 0; i < frameTimeComputeModel.frameTimeList.length; i++) {
-    frameTimeComputeModel.frameTimeList[i].fps =
-        frameTimeComputeModel.frameTimeList[i].timeInMicroseconds <= 0
-            ? _defaultFps
-            : (_milliSecondsInASecond /
-                frameTimeComputeModel.frameTimeList[i].timeInMicroseconds);
-  }
-
-  // Frame Time map generation
-  for (FrameTimeModel frameTime in frameTimeComputeModel.frameTimeList) {
-    frameTimeMap.putIfAbsent(
-        frameTime.epochTime.toString(),
-        () => {
-              'fps': frameTime.fps,
-              'frameTimeInMilliseconds':
-                  frameTime.timeInMicroseconds / _milliSecondsInAMicroSecond,
-            });
-  }
-
-  // Total frame count
-  map.putIfAbsent('count', () => frameTimeComputeModel.frameTimeList.length);
-
-  // Min and Max framerate calculation
-  double total = 0; //Initial values
-  double maxFps = 0; //Initial values
-  double minFps = 1000; //Initial values
-  int maxFrameTime = 10000; //Initial values
-  int minFrameTime = 0; //Initial values
-  for (var element in frameTimeComputeModel.frameTimeList) {
-    total += element.fps;
-
-    if (maxFps < element.fps) {
-      maxFps = element.fps;
-      minFrameTime = element.timeInMicroseconds;
-    }
-    if (minFps > element.fps) {
-      minFps = element.fps;
-      maxFrameTime = element.timeInMicroseconds;
-    }
-  }
-
-  // Average framerate calculation
-  double averageFps = total / frameTimeComputeModel.frameTimeList.length;
-
-  double jankThreshold = frameTimeComputeModel.jankThresholdFrameRate;
-  double jankFrames = 0;
-  double totalJankTimeInSecs = 0;
-  // Jank calculation
-  for (var element in frameTimeComputeModel.frameTimeList) {
-    if (jankThreshold > element.fps) {
-      jankFrames++;
-      totalJankTimeInSecs += element.timeInMicroseconds;
-    }
-  }
-
-  map.putIfAbsent('averageFps', () => averageFps);
-  map.putIfAbsent('maxFps', () => maxFps);
-  map.putIfAbsent(
-      'minFrameTime', () => minFrameTime / _milliSecondsInAMicroSecond);
-  map.putIfAbsent('minFps', () => minFps);
-  map.putIfAbsent(
-      'maxFrameTime', () => maxFrameTime / _milliSecondsInAMicroSecond);
-  map.putIfAbsent('jankFrames', () => jankFrames);
-  map.putIfAbsent('jankPercentage',
-      () => jankFrames / frameTimeComputeModel.frameTimeList.length * 100);
-  map.putIfAbsent('totalJankTimeInMs',
-      () => totalJankTimeInSecs / _milliSecondsInAMicroSecond);
-  map.putIfAbsent(
-      'durationInMs', () => frameTimeComputeModel.benchmarkTime.inMilliseconds);
-
-  map.putIfAbsent('frameTimeMap', () => frameTimeMap);
-  return json.encode(map);
 }
 
 /// Logs events when the app is running in debug mode only.

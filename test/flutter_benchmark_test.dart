@@ -11,7 +11,7 @@ class MockFlutterBenchmarkPlatform
   Future<String?> getPlatformVersion() => Future.value('42');
 
   @override
-  Future<void> shareJsonReport(String result) {
+  Future<void> shareReport(String result, String extension) {
     throw UnimplementedError();
   }
 }

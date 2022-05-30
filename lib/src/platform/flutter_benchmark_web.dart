@@ -26,7 +26,7 @@ class FlutterBenchmarkWeb extends FlutterBenchmarkPlatform {
   }
 
   @override
-  Future<void> shareJsonReport(String result) async {
+  Future<void> shareReport(String result, String extension) async {
     // Encode the result in base64
     final base64 = base64Encode(result.codeUnits);
     // Create the link with the file
@@ -34,7 +34,7 @@ class FlutterBenchmarkWeb extends FlutterBenchmarkPlatform {
         html.AnchorElement(href: 'data:application/octet-stream;base64,$base64')
           ..target = 'blank';
     // add the name
-    anchor.download = '${DateTime.now().millisecondsSinceEpoch}.json';
+    anchor.download = '${DateTime.now().millisecondsSinceEpoch}.$extension';
     // trigger download
     html.document.body?.append(anchor);
     anchor.click();

@@ -27,7 +27,7 @@ abstract class FlutterBenchmarkPlatform extends PlatformInterface {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
 
-  Future<void> shareJsonReport(String result) {
+  Future<void> shareReport(String result, String extension) {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
 }

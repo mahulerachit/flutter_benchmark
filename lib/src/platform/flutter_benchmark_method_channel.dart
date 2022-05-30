@@ -20,10 +20,10 @@ class MethodChannelFlutterBenchmark extends FlutterBenchmarkPlatform {
   }
 
   @override
-  Future<void> shareJsonReport(String result) async {
+  Future<void> shareReport(String result, String extension) async {
     await getTemporaryDirectory().then((dir) async {
-      final jsonFile =
-          File('${dir.path}/${DateTime.now().millisecondsSinceEpoch}.json');
+      final jsonFile = File(
+          '${dir.path}/${DateTime.now().millisecondsSinceEpoch}.$extension');
       await jsonFile.writeAsString(result);
       Share.shareFiles([jsonFile.path]);
     });
