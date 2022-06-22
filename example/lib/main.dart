@@ -132,6 +132,13 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: const Text('Both'),
                       ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: ElevatedButton(
+                        onPressed: _startAutomation,
+                        child: const Text('Start Automation'),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -140,6 +147,30 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
+  }
+
+  Future<void> _startAutomation() async {
+    //Start automated run
+    FlutterBenchmark.instance.startBenchmark();
+    Future.delayed(const Duration(milliseconds: 5));
+
+    // Pause Benchmark while retaining data
+    FlutterBenchmark.instance.stopBenchmark();
+    Future.delayed(const Duration(milliseconds: 5));
+
+    // Resume Benchmark
+    FlutterBenchmark.instance.resumeBenchmark();
+    Future.delayed(const Duration(milliseconds: 5));
+
+    // Set jank threshold framerate
+    FlutterBenchmark.instance.setJankThresholdFrameRate(29);
+
+    // Set the benchmark report format
+    FlutterBenchmark.instance
+        .setBenchmarkReportFormat(BenchmarkReportFormat.html);
+
+    // Stop benchmark, generate report and flush data
+    FlutterBenchmark.instance.stopBenchmark(generateReport: true);
   }
 
   void _cpuJank() {

@@ -210,3 +210,24 @@ class PerformanceFabWidget extends StatelessWidget {
 
 const _kAccentColor = Colors.blueGrey;
 const _kOverlayColor = Colors.blueGrey;
+
+enum BenchmarkReportFormat {
+  jsonFile,
+  plainString,
+  html,
+}
+
+extension BenchmarkReportFormatExtension on BenchmarkReportFormat {
+  String get getValue {
+    switch (this) {
+      case BenchmarkReportFormat.jsonFile:
+        return 'json';
+
+      case BenchmarkReportFormat.plainString:
+        return 'txt';
+
+      case BenchmarkReportFormat.html:
+        return 'html';
+    }
+  }
+}
