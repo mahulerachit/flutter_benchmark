@@ -10,7 +10,6 @@ import 'package:flutter_benchmark/src/isolates/json_isolate_helper.dart';
 import 'package:share_plus/share_plus.dart';
 import 'flutter_benchmark_platform_interface.dart';
 import 'src/utils/consts.dart';
-import 'src/utils/enums.dart';
 import 'src/widgets/performance_fab.dart';
 
 class FlutterBenchmark {
