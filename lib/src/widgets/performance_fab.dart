@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_benchmark/flutter_benchmark.dart';
 
-import '../utils/enums.dart';
-
 class PerformanceFab extends StatefulWidget {
   final Widget child;
   final Offset? initialOffset;
@@ -27,7 +25,7 @@ class PerformanceFabState extends State<PerformanceFab> {
   bool _recording = false;
   bool _generatingReport = false;
   bool _settingsToggled = false;
-  BenchmarkReportFormat _benchmarkReportFormat = BenchmarkReportFormat.jsonFile;
+  BenchmarkReportFormat _benchmarkReportFormat = BenchmarkReportFormat.html;
   @override
   void initState() {
     super.initState();
@@ -115,16 +113,14 @@ class PerformanceFabState extends State<PerformanceFab> {
                 ),
                 onPressed: () => setState(() => _settingsToggled = false),
               ),
-              _buildRadioListTile(BenchmarkReportFormat.jsonFile, 'JSON File'),
-              _buildRadioListTile(
-                  BenchmarkReportFormat.plainString, 'Plain String'),
-              _buildRadioListTile(BenchmarkReportFormat.html, 'HTML Report'),
+              _buildRadioListTile(BenchmarkReportFormat.jsonFile),
+              _buildRadioListTile(BenchmarkReportFormat.plainString),
+              _buildRadioListTile(BenchmarkReportFormat.html),
             ],
           );
   }
 
-  Widget _buildRadioListTile(
-      BenchmarkReportFormat benchmarkReportFormat, String title) {
+  Widget _buildRadioListTile(BenchmarkReportFormat benchmarkReportFormat) {
     return RadioListTile<BenchmarkReportFormat>(
       dense: true,
       contentPadding: EdgeInsets.zero,
@@ -140,7 +136,7 @@ class PerformanceFabState extends State<PerformanceFab> {
         }
       },
       title: Text(
-        title,
+        benchmarkReportFormat.getName,
         style: TextStyle(
           color: widget.accentColor,
           fontSize: _kFontSize,

@@ -86,6 +86,10 @@ class HtmlIsolateHelper {
     // minData = minData.substring(0, minData.length - 3);
 
     String html = _baseHtml
+        .replaceFirst(ReplacementKeys.MAXFPS.value, maxFpsString)
+        .replaceFirst(ReplacementKeys.MINFPS.value, minFpsString)
+        .replaceFirst(ReplacementKeys.AVGFPS.value, averageFps)
+        .replaceFirst(ReplacementKeys.JANKCOUNT.value, jankFrames.toString())
         .replaceFirst(
             ReplacementKeys.JANKTIME.value, totalJankTimeInMs.toString())
         .replaceFirst(ReplacementKeys.JANKCOUNT.value, jankFrames.toString())
@@ -149,7 +153,7 @@ const _baseHtml =
             plugins: {
                 title: {
                     display: true,
-                    text: 'Rendered *COUNT* frames in *TIME*MS | *JANKPER*% jank (*JANKCOUNT* frames in *JANKTIME*MS)',
+                    text: 'Rendered *COUNT* frames in *TIME*MS | *JANKPER*% jank (*JANKCOUNT* frames in *JANKTIME*MS) | Max FPS: *MAXFPS* | Min FPS: *MINFPS* | Average FPS: *AVGFPS*',
                     position: 'bottom',
                     font: {
                         size: 14
@@ -179,6 +183,9 @@ const _baseHtml =
 </script>''';
 
 enum ReplacementKeys {
+  MAXFPS,
+  MINFPS,
+  AVGFPS,
   LABELS,
   FPS,
   FRAMETIME,
@@ -195,6 +202,12 @@ enum ReplacementKeys {
 extension ReplacementKeysExtension on ReplacementKeys {
   String get value {
     switch (this) {
+      case ReplacementKeys.MAXFPS:
+        return '*MAXFPS*';
+      case ReplacementKeys.MINFPS:
+        return '*MINFPS*';
+      case ReplacementKeys.AVGFPS:
+        return '*AVGFPS*';
       case ReplacementKeys.LABELS:
         return '*LABELS*';
       case ReplacementKeys.FPS:

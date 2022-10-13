@@ -229,4 +229,17 @@ extension BenchmarkReportFormatExtension on BenchmarkReportFormat {
         return 'html';
     }
   }
+
+  String get getName {
+    switch (this) {
+      case BenchmarkReportFormat.jsonFile:
+        return 'JSON File';
+
+      case BenchmarkReportFormat.plainString:
+        return 'Plain String';
+
+      case BenchmarkReportFormat.html:
+        return 'HTML Report';
+    }
+  }
 }
