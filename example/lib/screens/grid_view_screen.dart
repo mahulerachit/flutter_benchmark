@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class GridViewScreen extends StatelessWidget {
-  GridViewScreen({Key? key, required this.lazyLoad}) : super(key: key);
+  GridViewScreen({super.key, required this.lazyLoad});
 
   final bool lazyLoad;
   final ScrollController _scrollController = ScrollController();
@@ -56,6 +56,7 @@ class GridViewScreen extends StatelessWidget {
     await _scrollController.animateTo(0,
         duration: const Duration(milliseconds: 3000), curve: Curves.easeInOut);
     await Future.delayed(const Duration(milliseconds: 2000));
+    // ignore: use_build_context_synchronously
     Navigator.of(context).pop();
   }
 

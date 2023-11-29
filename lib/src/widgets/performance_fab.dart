@@ -8,13 +8,13 @@ class PerformanceFab extends StatefulWidget {
   final Color overlayColor;
   final Color accentColor;
   const PerformanceFab({
-    Key? key,
+    super.key,
     required this.child,
     required this.initialOffset,
     required this.show,
     required this.overlayColor,
     required this.accentColor,
-  }) : super(key: key);
+  });
 
   @override
   PerformanceFabState createState() => PerformanceFabState();

@@ -187,13 +187,13 @@ class PerformanceFabWidget extends StatelessWidget {
   final Color overlayColor;
   final Color accentColor;
   const PerformanceFabWidget({
-    Key? key,
+    super.key,
     required this.child,
     this.initialOffset,
     this.show = true,
     this.overlayColor = _kOverlayColor,
     this.accentColor = _kAccentColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

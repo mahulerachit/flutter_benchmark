@@ -5,7 +5,7 @@ import 'package:flutter_benchmark/flutter_benchmark.dart';
 import 'package:flutter_benchmark_example/screens/grid_view_screen.dart';
 
 class SampleHomeScreen extends StatefulWidget {
-  const SampleHomeScreen({Key? key}) : super(key: key);
+  const SampleHomeScreen({super.key});
 
   @override
   State<SampleHomeScreen> createState() => _SampleHomePageState();
@@ -53,6 +53,7 @@ class _SampleHomePageState extends State<SampleHomeScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Benchmark Demo Home Page'),
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         ),
         body: Center(
           child: Column(

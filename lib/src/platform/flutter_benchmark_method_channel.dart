@@ -25,7 +25,7 @@ class MethodChannelFlutterBenchmark extends FlutterBenchmarkPlatform {
       final jsonFile = File(
           '${dir.path}/${DateTime.now().millisecondsSinceEpoch}.$extension');
       await jsonFile.writeAsString(result);
-      Share.shareFiles([jsonFile.path]);
+      Share.shareXFiles([XFile(jsonFile.path)]);
     });
   }
 }
