@@ -1,87 +1,100 @@
 import 'dart:convert';
 import 'package:flutter_benchmark/src/models/frame_time_compute_model.dart';
-import 'package:flutter_benchmark/src/models/frame_time_model.dart';
 import '../utils/consts.dart';
 
 class JsonIsolateHelper {
   static String getJsonIsolate(FrameTimeComputeModel frameTimeComputeModel) {
     Map<String, dynamic> map = {};
-    Map<String, dynamic> frameTimeMap = {};
 
-    // Asynchronous FPS calculation
-    for (int i = 0; i < frameTimeComputeModel.frameTimeList.length; i++) {
-      frameTimeComputeModel.frameTimeList[i].fps =
-          frameTimeComputeModel.frameTimeList[i].timeInMicroseconds <= 0
-              ? kDefaultFps
-              : (kMilliSecondsInASecond /
-                  frameTimeComputeModel.frameTimeList[i].timeInMicroseconds);
+    Map<int, double> fpsGraph = {};
+
+    List<int> epochTimes =
+        frameTimeComputeModel.frameTimeList.map((e) => e.epochTime).toList();
+
+    // Sort epoch times in ascending order
+    epochTimes.sort();
+
+    // Calculate the first second
+    final firstSecond = epochTimes.first ~/ kMicroSecondsInASecond;
+
+    // Calculate FPS for each second
+    int currentSecond = firstSecond;
+    double frameCount = 0;
+
+    for (int time in epochTimes) {
+      int second = time ~/ kMicroSecondsInASecond;
+
+      if (second == currentSecond) {
+        frameCount++;
+      } else {
+        fpsGraph[currentSecond] = frameCount /
+            ((time - currentSecond * kMicroSecondsInASecond) /
+                kMicroSecondsInASecond);
+        currentSecond = second;
+        frameCount = 1;
+      }
     }
 
-    // Frame Time map generation
-    for (FrameTimeModel frameTime in frameTimeComputeModel.frameTimeList) {
-      frameTimeMap.putIfAbsent(
-          frameTime.epochTime.toString(),
-          () => {
-                'fps': frameTime.fps.toStringAsFixed(3),
-                'frameTimeInMilliseconds':
-                    frameTime.timeInMicroseconds / kMilliSecondsInAMicroSecond,
-              });
+    // Add the last second
+    fpsGraph[currentSecond] = frameCount /
+        ((epochTimes.last - currentSecond * kMicroSecondsInASecond) /
+            kMicroSecondsInASecond);
+
+    final lastSecond = currentSecond;
+
+    // Fill the zero FPS gaps in fpsGraph
+    for (int currSec = firstSecond; currSec < lastSecond; currSec++) {
+      if (!fpsGraph.containsKey(currSec)) {
+        fpsGraph[currSec] = 0.0;
+      }
     }
 
     // Total frame count
-    map.putIfAbsent('count', () => frameTimeComputeModel.frameTimeList.length);
+    map.putIfAbsent('count', () => fpsGraph.length);
 
     // Min and Max framerate calculation
     double total = 0; //Initial values
     double maxFps = 0; //Initial values
     double minFps = 1000; //Initial values
-    int maxFrameTime = 10000; //Initial values
-    int minFrameTime = 0; //Initial values
-    for (var element in frameTimeComputeModel.frameTimeList) {
-      total += element.fps;
 
-      if (maxFps < element.fps) {
-        maxFps = element.fps;
-        minFrameTime = element.timeInMicroseconds;
+    for (var element in fpsGraph.values) {
+      total += element;
+
+      if (maxFps < element) {
+        maxFps = element;
       }
-      if (minFps > element.fps) {
-        minFps = element.fps;
-        maxFrameTime = element.timeInMicroseconds;
+      if (minFps > element) {
+        minFps = element;
       }
     }
 
     // Average framerate calculation
-    double averageFps = total / frameTimeComputeModel.frameTimeList.length;
+    final averageFps = (total / fpsGraph.length);
 
     double jankThreshold = frameTimeComputeModel.jankThresholdFrameRate;
-    double jankFrames = 0;
-    double totalJankTimeInSecs = 0;
+    int totalJankTimeInSecs = 0;
+
     // Jank calculation
-    for (var element in frameTimeComputeModel.frameTimeList) {
-      if (jankThreshold > element.fps) {
-        jankFrames++;
-        totalJankTimeInSecs += element.timeInMicroseconds;
+    for (var element in fpsGraph.values) {
+      if (jankThreshold > element) {
+        totalJankTimeInSecs++;
       }
     }
 
+    final durationInMs = lastSecond - firstSecond;
+    final jankPercentage =
+        ((100 * totalJankTimeInSecs) / durationInMs).toStringAsFixed(2);
+    final totalJankTimeInMs = totalJankTimeInSecs * 1000;
+
     map.putIfAbsent('averageFps', () => averageFps.toStringAsFixed(3));
     map.putIfAbsent('maxFps', () => maxFps.toStringAsFixed(3));
-    map.putIfAbsent('minFrameTime',
-        () => (minFrameTime / kMilliSecondsInAMicroSecond).toStringAsFixed(3));
     map.putIfAbsent('minFps', () => minFps.toStringAsFixed(3));
-    map.putIfAbsent('maxFrameTime',
-        () => (maxFrameTime / kMilliSecondsInAMicroSecond).toStringAsFixed(3));
-    map.putIfAbsent('jankFrames', () => jankFrames);
-    map.putIfAbsent(
-        'jankPercentage',
-        () => (jankFrames / frameTimeComputeModel.frameTimeList.length * 100)
-            .toStringAsFixed(2));
-    map.putIfAbsent('totalJankTimeInMs',
-        () => totalJankTimeInSecs / kMilliSecondsInAMicroSecond);
-    map.putIfAbsent('durationInMs',
-        () => frameTimeComputeModel.benchmarkTime.inMilliseconds);
-
-    map.putIfAbsent('frameTimeMap', () => frameTimeMap);
+    map.putIfAbsent('jankPercentage', () => jankPercentage);
+    map.putIfAbsent('totalJankTimeInMs', () => totalJankTimeInMs);
+    map.putIfAbsent('durationInMs', () => durationInMs);
+    print('test1');
+    map.putIfAbsent('frameTime', () => fpsGraph);
+    print('test2');
     return json.encode(map);
   }
 }

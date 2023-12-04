@@ -1,62 +1,91 @@
 // ignore_for_file: constant_identifier_names
 
 import '../models/frame_time_compute_model.dart';
-import '../models/frame_time_model.dart';
 import '../utils/consts.dart';
 
 class HtmlIsolateHelper {
   static String getHtmlIsolate(FrameTimeComputeModel frameTimeComputeModel) {
-    // Map<String, dynamic> frameTimeMap = {};
+    Map<int, double> fpsGraph = {};
 
-    // Asynchronous FPS calculation
-    for (int i = 0; i < frameTimeComputeModel.frameTimeList.length; i++) {
-      frameTimeComputeModel.frameTimeList[i].fps =
-          frameTimeComputeModel.frameTimeList[i].timeInMicroseconds <= 0
-              ? kDefaultFps
-              : (kMilliSecondsInASecond /
-                  frameTimeComputeModel.frameTimeList[i].timeInMicroseconds);
+    List<int> epochTimes =
+        frameTimeComputeModel.frameTimeList.map((e) => e.epochTime).toList();
+
+    // Sort epoch times in ascending order
+    epochTimes.sort();
+
+    // Calculate the first second
+    final firstSecond = epochTimes.first ~/ kMicroSecondsInASecond;
+
+    // Calculate FPS for each second
+    int currentSecond = firstSecond;
+    double frameCount = 0;
+
+    for (int time in epochTimes) {
+      int second = time ~/ kMicroSecondsInASecond;
+
+      if (second == currentSecond) {
+        frameCount++;
+      } else {
+        fpsGraph[currentSecond] = frameCount /
+            ((time - currentSecond * kMicroSecondsInASecond) /
+                kMicroSecondsInASecond);
+        currentSecond = second;
+        frameCount = 1;
+      }
+    }
+
+    // Add the last second
+    fpsGraph[currentSecond] = frameCount /
+        ((epochTimes.last - currentSecond * kMicroSecondsInASecond) /
+            kMicroSecondsInASecond);
+
+    final lastSecond = currentSecond;
+
+    // Fill the zero FPS gaps in fpsGraph
+    for (int currSec = firstSecond; currSec < lastSecond; currSec++) {
+      if (!fpsGraph.containsKey(currSec)) {
+        fpsGraph[currSec] = 0.0;
+      }
     }
 
     // Total frame count
-    final count = frameTimeComputeModel.frameTimeList.length;
+    final count = fpsGraph.length;
 
     // Min and Max framerate calculation
     double total = 0; //Initial values
     double maxFps = 0; //Initial values
-    double minFps = 1000; //Initial values
-    for (var element in frameTimeComputeModel.frameTimeList) {
-      total += element.fps;
+    double minFps = 10000; //Initial values
 
-      if (maxFps < element.fps) {
-        maxFps = element.fps;
+    for (var element in fpsGraph.values) {
+      total += element;
+
+      if (maxFps < element) {
+        maxFps = element;
       }
-      if (minFps > element.fps) {
-        minFps = element.fps;
+      if (minFps > element) {
+        minFps = element;
       }
     }
 
     // Average framerate calculation
-    final averageFps =
-        (total / frameTimeComputeModel.frameTimeList.length).toStringAsFixed(3);
+    final averageFps = (total / fpsGraph.length).toStringAsFixed(3);
 
     double jankThreshold = frameTimeComputeModel.jankThresholdFrameRate;
-    int jankFrames = 0;
-    double totalJankTimeInSecs = 0;
+    int totalJankTimeInSecs = 0;
+
     // Jank calculation
-    for (var element in frameTimeComputeModel.frameTimeList) {
-      if (jankThreshold > element.fps) {
-        jankFrames++;
-        totalJankTimeInSecs += element.timeInMicroseconds;
+    for (var element in fpsGraph.values) {
+      if (jankThreshold > element) {
+        totalJankTimeInSecs++;
       }
     }
 
     final maxFpsString = maxFps.toStringAsFixed(3);
     final minFpsString = minFps.toStringAsFixed(3);
-    final jankPercentage =
-        (jankFrames / frameTimeComputeModel.frameTimeList.length * 100)
-            .toStringAsFixed(2);
-    final totalJankTimeInMs = totalJankTimeInSecs / kMilliSecondsInAMicroSecond;
-    final durationInMs = frameTimeComputeModel.benchmarkTime.inMilliseconds;
+    final durationInMs = (lastSecond - firstSecond) * 1000;
+    final jankPercentage = ((100 * totalJankTimeInSecs) / (durationInMs / 1000))
+        .toStringAsFixed(2);
+    final totalJankTimeInMs = totalJankTimeInSecs * 1000;
 
     String labels = '';
     String fpsData = '';
@@ -66,14 +95,12 @@ class HtmlIsolateHelper {
     String minData = '';
 
     // Frame graph map generation
-    for (FrameTimeModel frameTime in frameTimeComputeModel.frameTimeList) {
-      final time = DateTime.fromMillisecondsSinceEpoch(frameTime.epochTime);
+    for (final epochTime in fpsGraph.keys) {
+      final time = DateTime.fromMicrosecondsSinceEpoch(epochTime);
       final label =
           "'${time.minute.toString().padLeft(2, '0')}m${time.second.toString().padLeft(2, '0')}s${time.millisecond.toString().padLeft(3, '0')}ms'";
       labels += '$label, ';
-      fpsData += '${frameTime.fps.toStringAsFixed(3)}, ';
-      frametTimeData +=
-          '${(frameTime.timeInMicroseconds / kMilliSecondsInAMicroSecond).toStringAsFixed(3)}, ';
+      fpsData += '${fpsGraph[epochTime]!.toStringAsFixed(3)}, ';
       avgData += '$averageFps, ';
       maxData += '$maxFpsString, ';
       minData += '$minFpsString, ';
@@ -89,10 +116,8 @@ class HtmlIsolateHelper {
         .replaceFirst(ReplacementKeys.MAXFPS.value, maxFpsString)
         .replaceFirst(ReplacementKeys.MINFPS.value, minFpsString)
         .replaceFirst(ReplacementKeys.AVGFPS.value, averageFps)
-        .replaceFirst(ReplacementKeys.JANKCOUNT.value, jankFrames.toString())
         .replaceFirst(
             ReplacementKeys.JANKTIME.value, totalJankTimeInMs.toString())
-        .replaceFirst(ReplacementKeys.JANKCOUNT.value, jankFrames.toString())
         .replaceFirst(ReplacementKeys.JANKPER.value, jankPercentage)
         .replaceFirst(ReplacementKeys.TIME.value, durationInMs.toString())
         .replaceFirst(ReplacementKeys.COUNT.value, count.toString())

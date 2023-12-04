@@ -9,7 +9,6 @@ import 'package:flutter_benchmark/src/models/frame_time_model.dart';
 import 'package:flutter_benchmark/src/isolates/json_isolate_helper.dart';
 import 'package:share_plus/share_plus.dart';
 import 'flutter_benchmark_platform_interface.dart';
-import 'src/utils/consts.dart';
 import 'src/widgets/performance_fab.dart';
 
 class FlutterBenchmark {
@@ -76,9 +75,8 @@ class FlutterBenchmark {
     if (_prev != null) {
       final time = duration - _prev!;
       _frameTimeList.add(FrameTimeModel(
-        epochTime: DateTime.now().millisecondsSinceEpoch,
+        epochTime: DateTime.now().microsecondsSinceEpoch,
         timeInMicroseconds: time.inMicroseconds,
-        fps: kDefaultFps,
       ));
     }
 
